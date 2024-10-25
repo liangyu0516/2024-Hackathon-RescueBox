@@ -83,8 +83,8 @@ class TextThreatDetectionModel:
         self.qa_pipeline = pipeline("question-answering")
         self.questions = [
             "What is the name of the person?",
-            "How old is the person?",
-            "What is the person's job?",
+            "What is the age of the person?",
+            "Is there any job mentioned?",
             "Where is the person now?"
         ]
 

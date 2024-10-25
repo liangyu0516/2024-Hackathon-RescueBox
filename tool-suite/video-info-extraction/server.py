@@ -61,6 +61,7 @@ def transcribe(inputs: TranscriptionInputs, parameters: NoParameters) -> Respons
         # Store results in the analysis_results dictionary
         analysis_results[file_path] = threat_results
     
+    # Format the output value
     response_text = dict()
     for file, qs in analysis_results.items():
         value = ""
