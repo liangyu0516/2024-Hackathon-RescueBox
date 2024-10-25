@@ -1,5 +1,7 @@
 from pathlib import Path
 from typing import Optional, List, Dict, Any
+import spacy
+from transformers import pipeline
 
 
 
@@ -44,7 +46,7 @@ class AudioTranscriptionModel:
             end_time = segment['end'] 
 
             res.append({
-                "sentence": sentence_text,
+                "text": sentence_text,
                 "start": start_time,
                 "end": end_time
             })
@@ -73,3 +75,41 @@ class AudioTranscriptionModel:
         if out_dir:
             self._write_res_to_dir(res, out_dir)
         return res
+
+
+class TextThreatDetectionModel:
+    def __init__(self, model_name: str = "en_core_web_sm"):
+        self.nlp = spacy.load(model_name)
+        self.qa_pipeline = pipeline("question-answering")
+        self.questions = [
+            "What is the name of the person?",
+            "How old is the person?",
+            "What is the person's job?",
+            "Where is the person now?"
+        ]
+
+    def detect_threats(self, text: str) -> Dict[str, Dict[str, Any]]:
+        """Process text and detect threats based on provided questions."""
+        # Use SpaCy to process the text
+        doc = self.nlp(text)
+
+        # Initialize a dictionary to hold results
+        results = {}
+        for question in self.questions:
+            # Use the QA pipeline
+            answer = self.qa_pipeline(question=question, context=text)
+            results[question] = {
+                'answer': answer['answer'],
+                'score': answer['score']
+            }
+        
+        return results
+
+    def analyze_texts(self, texts: List[str]) -> List[Dict[str, Dict[str, Any]]]:
+        """Analyze a list of texts and return threat detection results."""
+        all_results = []
+        for text in texts:
+            threat_results = self.detect_threats(text)
+            all_results.append(threat_results)
+        
+        return all_results
