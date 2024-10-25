@@ -1,3 +1,4 @@
+import json
 from typing import TypedDict
 from flask_ml.flask_ml_server import MLServer
 from flask_ml.flask_ml_server.models import *
@@ -62,26 +63,29 @@ def transcribe(inputs: TranscriptionInputs, parameters: NoParameters) -> Respons
         analysis_results[file_path] = threat_results
     
     # Format the output value
-    response_text = dict()
+    response_json = dict()
     for file, qs in analysis_results.items():
-        value = ""
+        response_json[file] = {}
         for q, rs in qs.items():
-            value += q + "\n"
-            value += "start end   information\n"
-            for r in rs:
-                value += f'{r["start_time"]:05.2f} {r["end_time"]:05.2f} {r["info"]}\n'
-            value += "\n"
-        response_text[file] = value
+            response_json[file][q] = [
+                {
+                    "info": r["info"],
+                    "start_time": f"{r['start_time']:05.2f}",
+                    "end_time": f"{r['end_time']:05.2f}"
+                }
+                for r in rs
+            ]
 
+    # Return the JSON-structured response
     return ResponseBody(
         root=(
             BatchTextResponse(
                 texts=[
                     TextResponse(
                         title=file,
-                        value=text
+                        value=json.dumps(response_json, indent=3)  # Convert each file's response to JSON string format
                     )
-                    for file, text in response_text.items()
+                    for file in response_json.keys()
                 ]
             )
         )
